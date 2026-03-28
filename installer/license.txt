@@ -1,0 +1,13 @@
+Gold Star Echo Chamber - License Agreement
+
+Copyright (c) 2026 Gold Star Recording Studios. All rights reserved.
+
+This software and associated impulse response files are proprietary
+and confidential. Unauthorized copying, distribution, or use of this
+software, in whole or in part, is strictly prohibited.
+
+The impulse responses included with this software were recorded at
+Gold Star Recording Studios and are licensed exclusively for use
+within this application.
+
+By installing this software, you agree to these terms.

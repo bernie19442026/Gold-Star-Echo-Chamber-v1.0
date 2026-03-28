@@ -1,0 +1,11 @@
+# Build artifacts
+build/
+*.o
+*.d
+
+# macOS
+.DS_Store
+*.pkg
+
+# Installer output (keep source, not built pkg)
+Gold Star Echo Chamber Installer.pkg

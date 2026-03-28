@@ -1,0 +1,4 @@
+#pragma once
+#define GOLDSTAR_VERSION "1.0.0"
+#define GOLDSTAR_VERSION_MAJOR 1
+#define GOLDSTAR_VERSION_MINOR 0

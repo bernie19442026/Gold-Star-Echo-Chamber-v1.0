@@ -1,0 +1,6 @@
+#!/bin/bash
+# Post-install: ensure correct permissions
+chmod -R 755 "/Applications/GoldStarEchoChamber.app"
+# Remove quarantine flag so it launches without Gatekeeper warning
+xattr -rd com.apple.quarantine "/Applications/GoldStarEchoChamber.app" 2>/dev/null
+exit 0
