@@ -1,0 +1,4 @@
+#pragma once
+#define GOLDSTAR_VERSION "D31"
+#define GOLDSTAR_VERSION_MAJOR 31
+#define GOLDSTAR_VERSION_MINOR 0

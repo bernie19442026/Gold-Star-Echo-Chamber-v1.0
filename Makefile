@@ -101,6 +101,10 @@ $(BUNDLE): $(OBJS)
 	@echo '</dict></plist>' >> $(BUNDLE)/Contents/Info.plist
 	@# Copy IR samples
 	@cp Resources/ir_samples/*.wav $(BUNDLE)/Contents/Resources/ir_samples/
+	@# Copy GUI assets
+	@mkdir -p $(BUNDLE)/Contents/Resources/gui
+	@cp Resources/gui/*.jpeg $(BUNDLE)/Contents/Resources/gui/ 2>/dev/null || :
+	@cp Resources/gui/*.png $(BUNDLE)/Contents/Resources/gui/ 2>/dev/null || :
 	@echo "Built $(BUNDLE)"
 
 %.o: %.cpp
