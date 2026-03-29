@@ -99,8 +99,7 @@ void AudioEngine::processBlock(const float* input, float* output, int numSamples
     // Update filter coefficients if parameters changed
     updateFilters();
 
-    // IR rebuild is handled by setParameter() on its calling thread,
-    // not on the audio thread (real-time safe).
+    // Note: IR rebuilds are handled by setParameter() — no need to check here
 
     // Process in blockSize_-sized chunks
     int processed = 0;
@@ -149,20 +148,18 @@ void AudioEngine::processBlock(const float* input, float* output, int numSamples
             // Update process meter (post-convolution)
             processLevel_.store(peakLevel(convolvedBuffer_.data(), chunkSize), std::memory_order_relaxed);
 
-            // 7. Dry/Wet mix with separate level controls + soft clip
+            // 7. Dry/Wet mix with separate level controls
             for (int i = 0; i < chunkSize; ++i) {
                 float wet = convolvedBuffer_[i];
                 if (!std::isfinite(wet)) wet = 0.0f;
                 float dry = filterBuffer_[i];
-                float mixed = (dry * dryLevel + wet * wetLevel) * outputLevelGain;
-                output[processed + i] = DSPUtils::softClip(mixed);
+                output[processed + i] = (dry * dryLevel + wet * wetLevel) * outputLevelGain;
             }
         } else {
             // Pure dry path
             processLevel_.store(0.0f, std::memory_order_relaxed);
             for (int i = 0; i < chunkSize; ++i) {
-                float mixed = filterBuffer_[i] * dryLevel * outputLevelGain;
-                output[processed + i] = DSPUtils::softClip(mixed);
+                output[processed + i] = filterBuffer_[i] * dryLevel * outputLevelGain;
             }
         }
 
@@ -172,6 +169,15 @@ void AudioEngine::processBlock(const float* input, float* output, int numSamples
     // Update output meter
     outputLevel_.store(peakLevel(output, numSamples), std::memory_order_relaxed);
 
+    // Diagnostic logging every ~2 seconds
+    if (++debugCounter_ % 172 == 1) {
+        std::cerr << "[DSP] in=" << inputLevel_.load()
+                  << " proc=" << processLevel_.load()
+                  << " out=" << outputLevel_.load()
+                  << " dry=" << dryLevel << " wet=" << wetLevel
+                  << " outLvl=" << outputLevelGain
+                  << std::endl;
+    }
 }
 
 void AudioEngine::loadIR(const std::string& path) {
@@ -344,12 +350,14 @@ void AudioEngine::rebuildModifiedIR() {
 }
 
 void AudioEngine::setParameter(ParameterID id, float value) {
+    float oldValue = parameters_->getParameterValue(id);
     parameters_->setParameterValue(id, value);
 
-    // Parameters that require IR rebuild
-    if ((id == ParameterID::REVERB_LENGTH || id == ParameterID::ROOM_SIZE ||
+    // Only rebuild IR if a relevant parameter actually changed
+    if (value != oldValue && !fullIR_.empty() &&
+        (id == ParameterID::REVERB_LENGTH || id == ParameterID::ROOM_SIZE ||
          id == ParameterID::DIFFUSION || id == ParameterID::REVERSE ||
-         id == ParameterID::DAMPING) && !fullIR_.empty()) {
+         id == ParameterID::DAMPING)) {
         cachedRoomSize_ = parameters_->getParameterValue(ParameterID::ROOM_SIZE);
         cachedDiffusion_ = parameters_->getParameterValue(ParameterID::DIFFUSION);
         cachedReverse_ = parameters_->getParameterValue(ParameterID::REVERSE);
